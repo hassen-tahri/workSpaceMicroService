@@ -1,0 +1,108 @@
+version: "2.2"
+services:
+  Discovery:
+    container_name: serviceregistry
+    build: ./Discovery
+    ports:
+      - "8081:8081"
+    hostname: serviceregistry
+    image: "discovery"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://serviceregistry:8081/eureka/
+    depends_on:
+      - "mysqldb"     
+
+  
+  Zuul:
+    container_name: Zuul
+    image: "zuul"
+    build: ./Zuul-Gateway
+    ports:
+      - "8762:8762"
+    hostname: Zuul
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://serviceregistry:8081/eureka/
+    depends_on:
+      - "Discovery"
+
+
+  Book:
+    container_name: Book
+    image: "book"
+    build: ./Book
+    ports:
+      - "8084:8084"
+    hostname: Book
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://serviceregistry:8081/eureka/
+    depends_on:
+      - "Discovery"
+
+  # Facture:
+  #   container_name: Facture
+  #   build: ./BookStore_Facture_MS
+  #   ports:
+  #     - "5000:5000"
+  #   hostname: Facture
+  #   image: "facture"
+  #   depends_on:
+  #     - "Discovery"    
+ 
+
+        
+
+  Client:
+    container_name: Client
+    image: "client"
+    build: ./BookStoreClient
+    restart: on-failure
+    ports:
+      - "8083:8083"
+    hostname: Client
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://serviceregistry:8081/eureka/
+    depends_on:
+      - "Discovery"  
+      - "mysqldb"  
+
+
+  Commande:
+    container_name: Commande
+    image: "commande"
+    build: ./BookStoreCommande
+    restart: on-failure
+    ports:
+      - "8082:8082"
+    hostname: Commande
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://serviceregistry:8081/eureka/
+    depends_on:
+      - "Discovery"  
+      - "mysqldb"     
+
+
+  mysqldb:
+    image: mysql:5.7
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=
+    ports:
+      - 3306:3306
+    volumes:
+      - "./scripts:/docker-entrypoint-initdb.d/"
+    healthcheck:
+        test: "test -f /tmp/db_ready"
+        interval: 20s
+        retries: 10  
+      
+
+
+
+
+
+
+
+
+
+
