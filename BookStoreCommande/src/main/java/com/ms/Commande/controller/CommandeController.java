@@ -13,6 +13,7 @@ import com.ms.Commande.entity.Commande;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class CommandeController {
 
     @Autowired
